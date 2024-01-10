@@ -1,5 +1,3 @@
-import Main
-
 def call(Map params = [:]) {
     def serviceName = params.serviceName
     def serviceMainDir  = params.serviceMainDir
