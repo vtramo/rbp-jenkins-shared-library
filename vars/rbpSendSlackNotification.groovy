@@ -1,7 +1,9 @@
 def call(String serviceName) {
-    def (slackColor, slackMessage) =
-        SlackUtilities.getSlackColorAndMessageNotificationByBuildResult(BuildResult.valueOf(currentBuild.result))
-    def ciChannel = SlackUtilities.CI_CHANNEL
+    script {
+        def (slackColor, slackMessage) =
+            SlackUtilities.getSlackColorAndMessageNotificationByBuildResult(BuildResult.valueOf(currentBuild.result))
+        def ciChannel = SlackUtilities.CI_CHANNEL
+    }
 
     slackSend(
         channel: "${ciChannel}",
