@@ -1,9 +1,5 @@
 def call(Map params = [:]) {
     def serviceName = params.serviceName
-    def serviceMainDir  = params.serviceMainDir
-    def serviceCIDir = params.serviceCIDir
-    def dockerRegistryURL = params.dockerRegistryURL
-    def dockerImageName = params.dockerImageName
 
     when {
         anyOf {
