@@ -4,9 +4,11 @@ def call(Map params = [:]) {
 
     node("${agent}") {
         stage("[${serviceName}] Build") {
-            options {
-                timeout(time: 3, unit: 'MINUTES')
-            }
+            properties(
+                [
+                    timeout(time: 3, unit: 'MINUTES')
+                ]
+            )
 
             steps {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
@@ -16,9 +18,11 @@ def call(Map params = [:]) {
         }
 
         stage("[${serviceName}] Unit Tests") {
-            options {
-                timeout(time: 20, unit: 'SECONDS')
-            }
+            properties(
+                [
+                    timeout(time: 20, unit: 'SECONDS')
+                ]
+            )
 
             steps {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
@@ -28,9 +32,11 @@ def call(Map params = [:]) {
         }
 
         stage("[${serviceName}] Integration Tests") {
-            options {
-                timeout(time: 40, unit: 'SECONDS')
-            }
+            properties(
+                [
+                    timeout(time: 40, unit: 'SECONDS')
+                ]
+            )
 
             steps {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
@@ -40,18 +46,20 @@ def call(Map params = [:]) {
         }
 
         stage("[${serviceName}] SonarQube Scan") {
-            options {
-                timeout(time: 1, unit: 'MINUTES')
-            }
+            properties(
+                [
+                    timeout(time: 1, unit: 'MINUTES')
+                ]
+            )
 
             steps {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
                     withSonarQubeEnv(installationName: 'sonarqube') {
                         sh """
-                        mvn sonar:sonar \
-                            -Dsonar.projectKey=restful-booker-platform-${serviceName} \
-                            -Dsonar.projectName=restful-booker-platform-${serviceName} \
-                    """
+                            mvn sonar:sonar \
+                                -Dsonar.projectKey=restful-booker-platform-${serviceName} \
+                                -Dsonar.projectName=restful-booker-platform-${serviceName} \
+                        """
                     }
                 }
             }
@@ -66,27 +74,31 @@ def call(Map params = [:]) {
         }
 
         stage("[${serviceName}] Build Image") {
-            options {
-                timeout(time: 30, unit: 'SECONDS')
-            }
+            properties(
+                [
+                    timeout(time: 30, unit: 'SECONDS')
+                ]
+            )
 
             steps {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
                     sh '''
-                    docker build \
-                        --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
-                        --build-arg BUILD_TAG=${BUILD_TAG} \
-                        --build-arg GIT_COMMIT=${GIT_COMMIT} \
-                        -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
-                '''
+                        docker build \
+                            --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
+                            --build-arg BUILD_TAG=${BUILD_TAG} \
+                            --build-arg GIT_COMMIT=${GIT_COMMIT} \
+                            -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
+                    '''
                 }
             }
         }
 
         stage("[${serviceName}] Performance Tests") {
-            options {
-                timeout(time: 1, unit: 'MINUTES')
-            }
+            properties(
+                [
+                    timeout(time: 1, unit: 'MINUTES')
+                ]
+            )
 
             environment {
                 RBP_SERVICE_HOSTNAME = 'rbp-auth'
@@ -112,9 +124,11 @@ def call(Map params = [:]) {
                 }
             }
 
-            options {
-                timeout(time: 30, unit: 'SECONDS')
-            }
+            properties(
+                [
+                    timeout(time: 30, unit: 'SECONDS')
+                ]
+            )
 
             steps {
                 sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
@@ -125,23 +139,23 @@ def call(Map params = [:]) {
             always {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
                     junit(
-                            testResults: 'target/surefire-reports/**/*.xml,target/failsafe-reports/**/*.xml',
-                            allowEmptyResults: true
+                        testResults: 'target/surefire-reports/**/*.xml,target/failsafe-reports/**/*.xml',
+                        allowEmptyResults: true
                     )
                     jacoco(
-                            execPattern: 'target/**/*.exec',
-                            classPattern: 'target/classes/com/rbp',
-                            sourcePattern: 'src/main/java/com/rbp'
+                        execPattern: 'target/**/*.exec',
+                        classPattern: 'target/classes/com/rbp',
+                        sourcePattern: 'src/main/java/com/rbp'
                     )
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                     recordIssues(
                             enabledForFailure: true, aggregatingResults: true,
                             tools: [
-                                    java(),
-                                    junitParser(name: 'Unit Test Warnings',
-                                            pattern: 'target/surefire-reports/**/*.xml'),
-                                    junitParser(name: 'Integration Test Warnings',
-                                            pattern: 'target/failsafe-reports/**/*.xml')
+                                java(),
+                                junitParser(name: 'Unit Test Warnings',
+                                        pattern: 'target/surefire-reports/**/*.xml'),
+                                junitParser(name: 'Integration Test Warnings',
+                                        pattern: 'target/failsafe-reports/**/*.xml')
                             ]
                     )
                 }
