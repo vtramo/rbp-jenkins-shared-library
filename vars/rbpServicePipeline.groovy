@@ -102,7 +102,7 @@ def call(Map params = [:]) {
             }
 
         } finally {
-            env.setProperty(BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + serviceName, currentBuild.result)
+            env.setProperty(BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + serviceName, currentBuild.currentResult)
 
             dir("${rbpServiceMainDir}") {
                 junit(
