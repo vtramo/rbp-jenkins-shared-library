@@ -75,7 +75,7 @@ def call(Map params = [:]) {
 
 
             timeout(time: 1, unit: 'MINUTES') {
-                dir("${RBP_AUTH_SERVICE_CI_DIR}") {
+                dir("${RBP_SERVICE_CI_DIR}") {
                     sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
                     bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
                     -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
