@@ -3,6 +3,11 @@ def call(Map params = [:]) {
     def agent = params.agent
 
     node("${agent}") {
+        environment {
+            RBP_SERVICE_MAIN_DIR = "restful-booker-platform/${serviceName}"
+            RBP_SERVICE_CI_DIR = "restful-booker-platform/${serviceName}/ci"
+        }
+
         stage("[${serviceName}] Build") {
             timeout(time: 3, unit: 'MINUTES') {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
@@ -35,7 +40,7 @@ def call(Map params = [:]) {
                         mvn sonar:sonar \
                             -Dsonar.projectKey=restful-booker-platform-${serviceName} \
                             -Dsonar.projectName=restful-booker-platform-${serviceName} \
-                    """
+                        """
                     }
                 }
             }
@@ -56,7 +61,7 @@ def call(Map params = [:]) {
                         --build-arg BUILD_TAG=${BUILD_TAG} \
                         --build-arg GIT_COMMIT=${GIT_COMMIT} \
                         -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
-                '''
+                    '''
                 }
             }
         }
@@ -87,12 +92,6 @@ def call(Map params = [:]) {
                     currentBuild.result == null || currentBuild.result == 'SUCCESS'
                 }
             }
-
-            properties(
-                [
-                    timeout(time: 30, unit: 'SECONDS')
-                ]
-            )
 
             timeout(time: 30, unit: 'SECONDS') {
                 sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
