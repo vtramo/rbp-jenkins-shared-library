@@ -3,10 +3,8 @@ def call(Map params = [:]) {
     def skipPerformanceTests = (params.skipPerformanceTests == true || params.skipPerformanceTests == "true")
 
     script {
-        environment {
-            RBP_SERVICE_MAIN_DIR = "restful-booker-platform/${serviceName}"
-            RBP_SERVICE_CI_DIR = "restful-booker-platform/${serviceName}/ci"
-        }
+        env.RBP_SERVICE_MAIN_DIR = "${serviceName}"
+        env.RBP_SERVICE_CI_DIR = "${serviceName}/ci"
 
         stage("[${serviceName}] Build") {
             timeout(time: 3, unit: 'MINUTES') {
