@@ -1,13 +1,19 @@
-def call(String serviceName) {
+def call() {
     def (emoticon, slackColor, slackMessage) =
-        SlackUtilities.buildSlackMessageByBuildResult(BuildResult.valueOf(currentBuild.result))
+        SlackUtilities.buildSlackMessageByBuildResult(
+            BuildStatus.valueOf(currentBuild.result))
     def ciChannel = SlackUtilities.CI_CHANNEL
+
+    def (passedServiceBuilds,
+            failedServiceBuilds,
+            abortedServiceBuilds,
+            unstableServiceBuilds) = BuildUtilities.groupServicesByBuildStatus()
 
     slackSend(
         channel: "${ciChannel}",
         color: "${slackColor}",
         message: """
-            ${emoticon} [${serviceName}] ${slackMessage}
+            ${emoticon} [RBP] ${slackMessage}
             *Branch:* ${GIT_BRANCH}
             *Commit ID:* ${GIT_COMMIT}
             *Short commit ID:* ${GIT_SHORT_COMMIT}
@@ -18,6 +24,10 @@ def call(String serviceName) {
             *Build label:* ${BUILD_TAG}
             *Build ID:* ${BUILD_ID}
             *Build URL:* ${BUILD_URL}
+            *Passed Services:* ${passedServiceBuilds}
+            *Failed Services:* ${failedServiceBuilds}
+            *Aborted Services:* ${abortedServiceBuilds}
+            *Unstable Services:* ${unstableServiceBuilds}
         """
     )
 }
