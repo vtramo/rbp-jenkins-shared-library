@@ -1,13 +1,13 @@
 def call(String serviceName) {
-    def (slackColor, slackMessage) =
-        SlackUtilities.getSlackColorAndMessageNotificationByBuildResult(BuildResult.valueOf(currentBuild.result))
+    def (emoticon, slackColor, slackMessage) =
+        SlackUtilities.buildSlackMessageByBuildResult(BuildResult.valueOf(currentBuild.result))
     def ciChannel = SlackUtilities.CI_CHANNEL
 
     slackSend(
         channel: "${ciChannel}",
         color: "${slackColor}",
         message: """
-            :white_check_mark: [${serviceName}] ${slackMessage}
+            ${emoticon} [${serviceName}] ${slackMessage}
             *Branch:* ${GIT_BRANCH}
             *Commit ID:* ${GIT_COMMIT}
             *Short commit ID:* ${GIT_SHORT_COMMIT}

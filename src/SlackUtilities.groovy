@@ -9,14 +9,18 @@ class SlackUtilities {
     static String FAILURE_MESSAGE = "Build failed!"
     static String UNSTABLE_MESSAGE = "Unstable build!"
 
-    static List<String> getSlackColorAndMessageNotificationByBuildResult(BuildResult buildResult) {
+    static String SUCCESS_EMOTICON = ":white_check_mark:"
+    static String FAILURE_EMOTICON = ":x:"
+    static String UNSTABLE_EMOTICON = ":warning:"
+
+    static List<String> buildSlackMessageByBuildResult(BuildResult buildResult) {
         switch(buildResult) {
             case BuildResult.SUCCESS:
-                return [GREEN, SUCCESS_MESSAGE]
+                return [SUCCESS_EMOTICON, GREEN, SUCCESS_MESSAGE]
             case BuildResult.FAILURE:
-                return [RED, FAILURE_MESSAGE]
+                return [FAILURE_EMOTICON, RED, FAILURE_MESSAGE]
             case BuildResult.UNSTABLE:
-                return [YELLOW, UNSTABLE_MESSAGE]
+                return [UNSTABLE_EMOTICON, YELLOW, UNSTABLE_MESSAGE]
             default:
                 throw new RuntimeException("Unexpected build result: " + buildResult)
         }
