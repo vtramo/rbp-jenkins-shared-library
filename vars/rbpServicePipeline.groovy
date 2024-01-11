@@ -1,5 +1,6 @@
 def call(Map params = [:]) {
     def serviceName = params.serviceName
+    def skipPerformanceTests = (params.skipPerformanceTests != null ?: 'false') as Boolean
 
     script {
         environment {
@@ -37,10 +38,10 @@ def call(Map params = [:]) {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
                     withSonarQubeEnv(installationName: 'sonarqube') {
                         sh """
-                    mvn sonar:sonar \
-                        -Dsonar.projectKey=restful-booker-platform-${serviceName} \
-                        -Dsonar.projectName=restful-booker-platform-${serviceName} \
-                    """
+                        mvn sonar:sonar \
+                            -Dsonar.projectKey=restful-booker-platform-${serviceName} \
+                            -Dsonar.projectName=restful-booker-platform-${serviceName} \
+                        """
                     }
                 }
             }
@@ -56,17 +57,23 @@ def call(Map params = [:]) {
             timeout(time: 30, unit: 'SECONDS') {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
                     sh '''
-                docker build \
-                    --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
-                    --build-arg BUILD_TAG=${BUILD_TAG} \
-                    --build-arg GIT_COMMIT=${GIT_COMMIT} \
-                    -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
-                '''
+                        docker build \
+                            --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
+                            --build-arg BUILD_TAG=${BUILD_TAG} \
+                            --build-arg GIT_COMMIT=${GIT_COMMIT} \
+                            -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
+                    '''
                 }
             }
         }
 
         stage("[${serviceName}] Performance Tests") {
+            when {
+                expression {
+                    skipPerformanceTests != false
+                }
+            }
+
             environment {
                 RBP_SERVICE_HOSTNAME = 'rbp-auth'
                 RBP_SERVICE_PORT = '3004'
@@ -78,9 +85,9 @@ def call(Map params = [:]) {
                 dir("${RBP_SERVICE_CI_DIR}") {
                     sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
                     bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
-                    -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
-                    -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
-                    performance-test.yaml"""
+                        -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
+                        -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
+                        performance-test.yaml"""
                 }
             }
 
