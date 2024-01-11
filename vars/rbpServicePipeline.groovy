@@ -1,6 +1,6 @@
 def call(Map params = [:]) {
     def serviceName = params.serviceName
-    def skipPerformanceTests = (params.skipPerformanceTests != null ?: 'false') as Boolean
+    def skipPerformanceTests = (params.skipPerformanceTests == true || params.skipPerformanceTests == "true")
 
     script {
         environment {
