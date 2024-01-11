@@ -4,6 +4,7 @@ def call(Map params = [:]) {
 
     script {
         env.setProperty(BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + serviceName, "UNKNOWN")
+
         def rbpServiceMainDir = "${serviceName}"
         def rbpServiceCiDir = "${serviceName}/ci"
 
@@ -68,40 +69,35 @@ def call(Map params = [:]) {
             }
 
             stage("[${serviceName}] Performance Tests") {
-                when {
-                    expression {
-                        skipPerformanceTests != false
+                if (skipPerformanceTests == true) {
+                    echo "[${serviceName}] Skip Performance Tests Stage"
+                } else {
+                    environment {
+                        RBP_SERVICE_HOSTNAME = 'rbp-auth'
+                        RBP_SERVICE_PORT = '3004'
+                        RBP_SERVICE_DOCKER_IMAGE_TAG = "${GIT_SHORT_COMMIT}"
                     }
-                }
-
-                environment {
-                    RBP_SERVICE_HOSTNAME = 'rbp-auth'
-                    RBP_SERVICE_PORT = '3004'
-                    RBP_SERVICE_DOCKER_IMAGE_TAG = "${GIT_SHORT_COMMIT}"
-                }
 
 
-                timeout(time: 1, unit: 'MINUTES') {
-                    dir("${rbpServiceCiDir}") {
-                        sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
-                        bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
+                    timeout(time: 1, unit: 'MINUTES') {
+                        dir("${rbpServiceCiDir}") {
+                            sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
+                            bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
                             -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
                             -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
                             performance-test.yaml"""
+                        }
                     }
                 }
-
             }
 
             stage("[${serviceName}] Push Image") {
-                when {
-                    expression {
-                        currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
+                    echo "[${serviceName}] Skip Push Image Stage"
+                } else {
+                    timeout(time: 30, unit: 'SECONDS') {
+                        sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
                     }
-                }
-
-                timeout(time: 30, unit: 'SECONDS') {
-                    sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
                 }
             }
 
@@ -120,7 +116,7 @@ def call(Map params = [:]) {
                 )
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 recordIssues(
-                    enabledForFailure: true, aggregatingResults: true,
+                    enabledForFailure: true, aggregatingResults: false,
                     tools: [
                         java(),
                         junitParser(name: 'Unit Test Warnings',
