@@ -1,3 +1,0 @@
-enum BuildResult {
-    SUCCESS, FAILURE, UNSTABLE, ABORTED
-}
