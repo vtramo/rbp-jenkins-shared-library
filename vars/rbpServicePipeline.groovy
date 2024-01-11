@@ -132,12 +132,12 @@ def call(Map params = [:]) {
                 dir("${RBP_SERVICE_CI_DIR}") {
                     sh '''
                         docker compose -f docker-compose-test.yaml logs && \
-                        docker compose -f docker-compose-test.yaml down --volumes
+                        docker compose -f docker-compose-test.yaml down --volumes || :
                     '''
                 }
             }
 
-            rbpSendSlackNotification ${serviceName}
+            rbpSendSlackNotification("${serviceName}")
         }
     }
 }
