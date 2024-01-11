@@ -4,62 +4,46 @@ def call(Map params = [:]) {
 
     node("${agent}") {
         stage("[${serviceName}] Build") {
-            properties(
-                [
-                    timeout(time: 3, unit: 'MINUTES')
-                ]
-            )
-
             steps {
-                dir("${RBP_SERVICE_MAIN_DIR}") {
-                    sh 'mvn clean package -DskipTests'
+                timeout(time: 3, unit: 'MINUTES') {
+                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                        sh 'mvn clean package -DskipTests'
+                    }
                 }
             }
         }
 
         stage("[${serviceName}] Unit Tests") {
-            properties(
-                [
-                    timeout(time: 20, unit: 'SECONDS')
-                ]
-            )
-
             steps {
-                dir("${RBP_SERVICE_MAIN_DIR}") {
-                    sh 'mvn test'
+                timeout(time: 20, unit: 'SECONDS') {
+                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                        sh 'mvn test'
+                    }
                 }
             }
         }
 
         stage("[${serviceName}] Integration Tests") {
-            properties(
-                [
-                    timeout(time: 40, unit: 'SECONDS')
-                ]
-            )
-
             steps {
-                dir("${RBP_SERVICE_MAIN_DIR}") {
-                    sh 'mvn verify -Dskip.surefire.tests=true'
+                timeout(time: 40, unit: 'SECONDS') {
+                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                        sh 'mvn verify -Dskip.surefire.tests=true'
+                    }
                 }
             }
         }
 
         stage("[${serviceName}] SonarQube Scan") {
-            properties(
-                [
-                    timeout(time: 1, unit: 'MINUTES')
-                ]
-            )
-
             steps {
-                dir("${RBP_SERVICE_MAIN_DIR}") {
-                    withSonarQubeEnv(installationName: 'sonarqube') {
-                        sh """
+                timeout(time: 1, unit: 'MINUTES') {
+                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                        withSonarQubeEnv(installationName: 'sonarqube') {
+                            sh """
                             mvn sonar:sonar \
                                 -Dsonar.projectKey=restful-booker-platform-${serviceName} \
                                 -Dsonar.projectName=restful-booker-platform-${serviceName} \
                         """
+                        }
                     }
                 }
             }
@@ -74,32 +58,22 @@ def call(Map params = [:]) {
         }
 
         stage("[${serviceName}] Build Image") {
-            properties(
-                [
-                    timeout(time: 30, unit: 'SECONDS')
-                ]
-            )
-
             steps {
-                dir("${RBP_SERVICE_MAIN_DIR}") {
-                    sh '''
+                timeout(time: 30, unit: 'SECONDS') {
+                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                        sh '''
                         docker build \
                             --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
                             --build-arg BUILD_TAG=${BUILD_TAG} \
                             --build-arg GIT_COMMIT=${GIT_COMMIT} \
                             -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
                     '''
+                    }
                 }
             }
         }
 
         stage("[${serviceName}] Performance Tests") {
-            properties(
-                [
-                    timeout(time: 1, unit: 'MINUTES')
-                ]
-            )
-
             environment {
                 RBP_SERVICE_HOSTNAME = 'rbp-auth'
                 RBP_SERVICE_PORT = '3004'
@@ -107,12 +81,14 @@ def call(Map params = [:]) {
             }
 
             steps {
-                dir("${RBP_AUTH_SERVICE_CI_DIR}") {
-                    sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
-                    bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
-                    -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
-                    -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
-                    performance-test.yaml"""
+                timeout(time: 1, unit: 'MINUTES') {
+                    dir("${RBP_AUTH_SERVICE_CI_DIR}") {
+                        sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
+                        bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
+                            -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
+                            -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
+                            performance-test.yaml"""
+                    }
                 }
             }
         }
@@ -131,7 +107,9 @@ def call(Map params = [:]) {
             )
 
             steps {
-                sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
+                timeout(time: 30, unit: 'SECONDS') {
+                    sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
+                }
             }
         }
 
@@ -149,22 +127,24 @@ def call(Map params = [:]) {
                     )
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                     recordIssues(
-                            enabledForFailure: true, aggregatingResults: true,
-                            tools: [
-                                java(),
-                                junitParser(name: 'Unit Test Warnings',
-                                        pattern: 'target/surefire-reports/**/*.xml'),
-                                junitParser(name: 'Integration Test Warnings',
-                                        pattern: 'target/failsafe-reports/**/*.xml')
-                            ]
+                        enabledForFailure: true, aggregatingResults: true,
+                        tools: [
+                            java(),
+                            junitParser(name: 'Unit Test Warnings',
+                                pattern: 'target/surefire-reports/**/*.xml'),
+                            junitParser(name: 'Integration Test Warnings',
+                                pattern: 'target/failsafe-reports/**/*.xml')
+                        ]
                     )
                 }
 
-                dir("${RBP_SERVICE_CI_DIR}") {
-                    sh '''
-                    docker compose -f docker-compose-test.yaml logs && \
-                    docker compose -f docker-compose-test.yaml down --volumes
-                '''
+                timeout(time: 30, unit: 'SECONDS') {
+                    dir("${RBP_SERVICE_CI_DIR}") {
+                        sh '''
+                        docker compose -f docker-compose-test.yaml logs && \
+                        docker compose -f docker-compose-test.yaml down --volumes
+                    '''
+                    }
                 }
 
                 rbpSendSlackNotification ${serviceName}
