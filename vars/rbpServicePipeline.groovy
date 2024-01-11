@@ -4,12 +4,12 @@ def call(Map params = [:]) {
 
     script {
         try {
-            env.RBP_SERVICE_MAIN_DIR = "${serviceName}"
-            env.RBP_SERVICE_CI_DIR = "${serviceName}/ci"
+            def rbpServiceMainDir = "${serviceName}"
+            def rbpServiceCiDir = "${serviceName}/ci"
 
             stage("[${serviceName}] Build") {
                 timeout(time: 3, unit: 'MINUTES') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                    dir("${rbpServiceMainDir}") {
                         sh 'ls'
                         sh 'mvn clean package -DskipTests'
                     }
@@ -18,7 +18,7 @@ def call(Map params = [:]) {
 
             stage("[${serviceName}] Unit Tests") {
                 timeout(time: 20, unit: 'SECONDS') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                    dir("${rbpServiceMainDir}") {
                         sh 'mvn test'
                     }
                 }
@@ -26,7 +26,7 @@ def call(Map params = [:]) {
 
             stage("[${serviceName}] Integration Tests") {
                 timeout(time: 40, unit: 'SECONDS') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                    dir("${rbpServiceMainDir}") {
                         sh 'mvn verify -Dskip.surefire.tests=true'
                     }
                 }
@@ -34,7 +34,7 @@ def call(Map params = [:]) {
 
             stage("[${serviceName}] SonarQube Scan") {
                 timeout(time: 1, unit: 'MINUTES') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                    dir("${rbpServiceMainDir}") {
                         withSonarQubeEnv(installationName: 'sonarqube') {
                             sh """
                             mvn sonar:sonar \
@@ -54,7 +54,7 @@ def call(Map params = [:]) {
 
             stage("[${serviceName}] Build Image") {
                 timeout(time: 30, unit: 'SECONDS') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
+                    dir("${rbpServiceMainDir}") {
                         sh '''
                             docker build \
                                 --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
@@ -81,7 +81,7 @@ def call(Map params = [:]) {
 
 
                 timeout(time: 1, unit: 'MINUTES') {
-                    dir("${RBP_SERVICE_CI_DIR}") {
+                    dir("${rbpServiceCiDir}") {
                         sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
                         bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
                             -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
@@ -105,7 +105,7 @@ def call(Map params = [:]) {
             }
 
         } finally {
-            dir("${RBP_SERVICE_MAIN_DIR}") {
+            dir("${rbpServiceMainDir}") {
                 junit(
                     testResults: 'target/surefire-reports/**/*.xml,target/failsafe-reports/**/*.xml',
                     allowEmptyResults: true
@@ -129,7 +129,7 @@ def call(Map params = [:]) {
             }
 
             timeout(time: 30, unit: 'SECONDS') {
-                dir("${RBP_SERVICE_CI_DIR}") {
+                dir("${rbpServiceCiDir}") {
                     sh '''
                         docker compose -f docker-compose-test.yaml logs && \
                         docker compose -f docker-compose-test.yaml down --volumes || :
