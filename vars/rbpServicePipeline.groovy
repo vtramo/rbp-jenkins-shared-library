@@ -11,6 +11,7 @@ def call(Map params = [:]) {
         stage("[${serviceName}] Build") {
             timeout(time: 3, unit: 'MINUTES') {
                 dir("${RBP_SERVICE_MAIN_DIR}") {
+                    sh 'ls'
                     sh 'mvn clean package -DskipTests'
                 }
             }
