@@ -1,19 +1,6 @@
 def call(Map params = [:]) {
     def serviceName = params.serviceName
 
-    when {
-        anyOf {
-            changeset "${serviceName}/Dockerfile"
-            changeset "${serviceName}/src/main/java/**/*.java"
-            changeset "${serviceName}/src/test/java/**/*.java"
-        }
-    }
-
-    environment {
-        RBP_SERVICE_MAIN_DIR = "${serviceName}"
-        RBP_SERVICE_CI_DIR = "${serviceName}/ci"
-    }
-
     stages {
         stage("[${serviceName}] Build") {
             options {
