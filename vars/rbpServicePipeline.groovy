@@ -4,71 +4,59 @@ def call(Map params = [:]) {
 
     node("${agent}") {
         stage("[${serviceName}] Build") {
-            steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
-                        sh 'mvn clean package -DskipTests'
-                    }
+            timeout(time: 3, unit: 'MINUTES') {
+                dir("${RBP_SERVICE_MAIN_DIR}") {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
         stage("[${serviceName}] Unit Tests") {
-            steps {
-                timeout(time: 20, unit: 'SECONDS') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
-                        sh 'mvn test'
-                    }
+            timeout(time: 20, unit: 'SECONDS') {
+                dir("${RBP_SERVICE_MAIN_DIR}") {
+                    sh 'mvn test'
                 }
             }
         }
 
         stage("[${serviceName}] Integration Tests") {
-            steps {
-                timeout(time: 40, unit: 'SECONDS') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
-                        sh 'mvn verify -Dskip.surefire.tests=true'
-                    }
+            timeout(time: 40, unit: 'SECONDS') {
+                dir("${RBP_SERVICE_MAIN_DIR}") {
+                    sh 'mvn verify -Dskip.surefire.tests=true'
                 }
             }
         }
 
         stage("[${serviceName}] SonarQube Scan") {
-            steps {
-                timeout(time: 1, unit: 'MINUTES') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
-                        withSonarQubeEnv(installationName: 'sonarqube') {
-                            sh """
-                            mvn sonar:sonar \
-                                -Dsonar.projectKey=restful-booker-platform-${serviceName} \
-                                -Dsonar.projectName=restful-booker-platform-${serviceName} \
-                        """
-                        }
+            timeout(time: 1, unit: 'MINUTES') {
+                dir("${RBP_SERVICE_MAIN_DIR}") {
+                    withSonarQubeEnv(installationName: 'sonarqube') {
+                        sh """
+                        mvn sonar:sonar \
+                            -Dsonar.projectKey=restful-booker-platform-${serviceName} \
+                            -Dsonar.projectName=restful-booker-platform-${serviceName} \
+                    """
                     }
                 }
             }
         }
 
         stage("[${serviceName}] Quality Gates") {
-            steps {
-                timeout(time: 1, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+            timeout(time: 1, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
             }
         }
 
         stage("[${serviceName}] Build Image") {
-            steps {
-                timeout(time: 30, unit: 'SECONDS') {
-                    dir("${RBP_SERVICE_MAIN_DIR}") {
-                        sh '''
-                        docker build \
-                            --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
-                            --build-arg BUILD_TAG=${BUILD_TAG} \
-                            --build-arg GIT_COMMIT=${GIT_COMMIT} \
-                            -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
-                    '''
-                    }
+            timeout(time: 30, unit: 'SECONDS') {
+                dir("${RBP_SERVICE_MAIN_DIR}") {
+                    sh '''
+                    docker build \
+                        --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
+                        --build-arg BUILD_TAG=${BUILD_TAG} \
+                        --build-arg GIT_COMMIT=${GIT_COMMIT} \
+                        -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
+                '''
                 }
             }
         }
@@ -80,17 +68,17 @@ def call(Map params = [:]) {
                 RBP_SERVICE_DOCKER_IMAGE_TAG = "${GIT_SHORT_COMMIT}"
             }
 
-            steps {
-                timeout(time: 1, unit: 'MINUTES') {
-                    dir("${RBP_AUTH_SERVICE_CI_DIR}") {
-                        sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
-                        bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
-                            -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
-                            -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
-                            performance-test.yaml"""
-                    }
+
+            timeout(time: 1, unit: 'MINUTES') {
+                dir("${RBP_AUTH_SERVICE_CI_DIR}") {
+                    sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
+                    bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
+                        -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
+                        -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
+                        performance-test.yaml"""
                 }
             }
+
         }
 
         stage("[${serviceName}] Push Image") {
@@ -106,10 +94,8 @@ def call(Map params = [:]) {
                 ]
             )
 
-            steps {
-                timeout(time: 30, unit: 'SECONDS') {
-                    sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
-                }
+            timeout(time: 30, unit: 'SECONDS') {
+                sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
             }
         }
 
@@ -141,9 +127,9 @@ def call(Map params = [:]) {
                 timeout(time: 30, unit: 'SECONDS') {
                     dir("${RBP_SERVICE_CI_DIR}") {
                         sh '''
-                        docker compose -f docker-compose-test.yaml logs && \
-                        docker compose -f docker-compose-test.yaml down --volumes
-                    '''
+                            docker compose -f docker-compose-test.yaml logs && \
+                            docker compose -f docker-compose-test.yaml down --volumes
+                        '''
                     }
                 }
 
