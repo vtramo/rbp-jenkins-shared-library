@@ -1,36 +1,32 @@
 class Service {
-    static List<Service> services = [
-        new Service('auth'),
-        new Service('booking'),
-        new Service('message'),
-        new Service('branding'),
-        new Service('report'),
-        new Service('room')
+    static Map<String, Service> servicesByName = [
+        'auth': new Service('auth'),
+        'booking': new Service('booking'),
+        'message': new Service('message'),
+        'branding': new Service('branding'),
+        'report': new Service('report'),
+        'room': new Service('room')
     ]
 
     String name
+    BuildStatus buildStatus
 
     Service(String name) {
         this.name = name
+        this.buildStatus = BuildStatus.UNKNOWN
     }
 
     BuildStatus getBuildStatus() {
-        String buildStatus = System.getenv(getBuildStatusEnvVariableName())
-        println(getBuildStatusEnvVariableName())
-        println(buildStatus)
-
-        if (buildStatus != null) {
-            try {
-                return BuildStatus.valueOf(buildStatus.toUpperCase())
-            } catch(IllegalArgumentException ignored) {
-                return BuildStatus.UNKNOWN
-            }
-        } else {
-            return BuildStatus.UNKNOWN
-        }
+        return buildStatus
     }
 
     String getBuildStatusEnvVariableName() {
         return BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + name.toUpperCase()
+    }
+
+    static setServiceBuildStatus(String serviceName, String buildStatus) {
+        servicesByName.computeIfPresent(serviceName, (__, service) -> {
+            service.setBuildStatus(BuildStatus.parseBuildStatus(buildStatus))
+        })
     }
 }

@@ -7,9 +7,8 @@ class BuildUtilities {
         def abortedServiceBuilds = []
         def unstableServiceBuilds = []
 
-        Service.services.each { service ->
+        Service.servicesByName.each { serviceName, service ->
             def buildStatus = service.getBuildStatus()
-            def serviceName = service.getName()
             switch (buildStatus) {
                 case BuildStatus.SUCCESS:
                     passedServiceBuilds.add(serviceName)

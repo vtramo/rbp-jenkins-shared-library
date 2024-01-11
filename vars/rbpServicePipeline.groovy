@@ -3,7 +3,7 @@ def call(Map params = [:]) {
     def skipPerformanceTests = (params.skipPerformanceTests == true || params.skipPerformanceTests == "true")
 
     script {
-        env.setProperty(BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + serviceName, "UNKNOWN")
+        Service.setServiceBuildStatus(serviceName, BuildStatus.UNKNOWN)
 
         def rbpServiceMainDir = "${serviceName}"
         def rbpServiceCiDir = "${serviceName}/ci"
@@ -102,7 +102,7 @@ def call(Map params = [:]) {
             }
 
         } finally {
-            env.setProperty(BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + serviceName, currentBuild.currentResult)
+            Service.setServiceBuildStatus(serviceName, BuildStatus.UNKNOWN, currentBuild.currentResult)
 
             dir("${rbpServiceMainDir}") {
                 junit(
