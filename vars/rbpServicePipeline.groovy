@@ -75,6 +75,8 @@ def call(Map params = [:]) {
                     echo "[${serviceName}] Skip Performance Tests Stage"
                 } else {
                     env.RBP_SERVICE_DOCKER_IMAGE_TAG = "${GIT_SHORT_COMMIT}"
+                    env.RBP_SERVICE_HOSTNAME = "${rbpServiceHostname}"
+                    env.RBP_SERVICE_PORT = "${rbpServicePort}"
 
                     timeout(time: 1, unit: 'MINUTES') {
                         dir("${rbpServiceCiDir}") {
