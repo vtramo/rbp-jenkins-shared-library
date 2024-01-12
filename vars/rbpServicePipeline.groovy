@@ -59,13 +59,13 @@ def call(Map params = [:]) {
             stage("[${serviceName}] Build Image") {
                 timeout(time: 2, unit: 'MINUTES') {
                     dir("${rbpServiceMainDir}") {
-                        sh '''
+                        sh """
                             docker build \
                                 --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
                                 --build-arg BUILD_TAG=${BUILD_TAG} \
                                 --build-arg GIT_COMMIT=${GIT_COMMIT} \
                                 -t ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT} .
-                        '''
+                        """
                     }
                 }
             }
@@ -96,7 +96,7 @@ def call(Map params = [:]) {
                     sh "docker image rm --force ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}"
                 } else {
                     timeout(time: 1, unit: 'MINUTES') {
-                        sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}'
+                        sh "docker push ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}"
                     }
                 }
             }
