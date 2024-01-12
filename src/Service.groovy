@@ -21,7 +21,7 @@ class Service {
     }
 
     static setServiceBuildStatus(String serviceName, String buildStatus) {
-        if(servicesByName[serviceName]) {
+        if (servicesByName[serviceName]) {
             servicesByName[serviceName].setBuildStatus(BuildStatus.parseBuildStatus(buildStatus))
         }
     }
