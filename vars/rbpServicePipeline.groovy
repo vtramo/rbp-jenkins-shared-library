@@ -2,7 +2,7 @@ def call(Map params = [:]) {
     def serviceName = params.serviceName
     def skipPerformanceTests = (params.skipPerformanceTests == true || params.skipPerformanceTests == "true")
     def workspace = params.workspace
-    def nodeLabel = params.node
+    def nodeLabel = params.nodeLabel
 
     node("${nodeLabel}") {
         unstash 'rbp'
