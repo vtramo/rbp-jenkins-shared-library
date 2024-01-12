@@ -20,6 +20,14 @@ class Service {
         return buildStatus
     }
 
+    static BuildStatus getBuildStatus(String serviceName) {
+        if (servicesByName[serviceName]) {
+            return servicesByName[serviceName].getBuildStatus()
+        } else {
+            return BuildStatus.UNKNOWN
+        }
+    }
+
     static setServiceBuildStatus(String serviceName, String buildStatus) {
         if (servicesByName[serviceName]) {
             servicesByName[serviceName].setBuildStatus(BuildStatus.parseBuildStatus(buildStatus))

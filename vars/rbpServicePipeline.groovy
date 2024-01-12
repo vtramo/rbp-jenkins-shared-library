@@ -104,30 +104,33 @@ def call(Map params = [:]) {
                     }
                 }
             }
-
         } finally {
-            Service.setServiceBuildStatus(serviceName, ${currentBuild.currentResult})
+            Service.setServiceBuildStatus(serviceName, currentBuild.currentResult)
+            echo currentBuild.result
+            echo ${currentBuild.currentResult}
+            echo currentBuild.currentResult
+            echo Service.getBuildStatus(serviceName).toString()
 
             dir("${rbpServiceMainDir}") {
                 junit(
-                        testResults: 'target/surefire-reports/**/*.xml,target/failsafe-reports/**/*.xml',
-                        allowEmptyResults: true
+                    testResults: 'target/surefire-reports/**/*.xml,target/failsafe-reports/**/*.xml',
+                    allowEmptyResults: true
                 )
                 jacoco(
-                        execPattern: 'target/**/*.exec',
-                        classPattern: 'target/classes/com/rbp',
-                        sourcePattern: 'src/main/java/com/rbp'
+                    execPattern: 'target/**/*.exec',
+                    classPattern: 'target/classes/com/rbp',
+                    sourcePattern: 'src/main/java/com/rbp'
                 )
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 recordIssues(
-                        enabledForFailure: true, aggregatingResults: false,
-                        tools: [
-                                java(),
-                                junitParser(name: 'Unit Test Warnings',
-                                        pattern: 'target/surefire-reports/**/*.xml'),
-                                junitParser(name: 'Integration Test Warnings',
-                                        pattern: 'target/failsafe-reports/**/*.xml')
-                        ]
+                    enabledForFailure: true, aggregatingResults: false,
+                    tools: [
+                            java(),
+                            junitParser(name: 'Unit Test Warnings',
+                                    pattern: 'target/surefire-reports/**/*.xml'),
+                            junitParser(name: 'Integration Test Warnings',
+                                    pattern: 'target/failsafe-reports/**/*.xml')
+                    ]
                 )
             }
 
