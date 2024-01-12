@@ -106,7 +106,9 @@ def call(Map params = [:]) {
             }
 
         } finally {
-            Service.setServiceBuildStatus(serviceName, ${currentBuild.currentResult})
+            Service.setServiceBuildStatus(serviceName, currentBuild.result)
+            echo currentBuild.result
+            echo Service.getBuildStatus(serviceName)
 
             dir("${rbpServiceMainDir}") {
                 junit(

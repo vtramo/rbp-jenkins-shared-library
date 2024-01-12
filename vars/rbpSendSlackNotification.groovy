@@ -5,9 +5,9 @@ def call() {
     def ciChannel = SlackUtilities.CI_CHANNEL
 
     def (passedServiceBuilds,
-            failedServiceBuilds,
-            abortedServiceBuilds,
-            unstableServiceBuilds) = BuildUtilities.groupServicesByBuildStatus()
+         failedServiceBuilds,
+         abortedServiceBuilds,
+         unstableServiceBuilds) = BuildUtilities.groupServicesByBuildStatus()
 
     slackSend(
         channel: "${ciChannel}",
