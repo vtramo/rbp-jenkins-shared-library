@@ -5,6 +5,7 @@ def call(Map params = [:]) {
     def nodeLabel = params.node
 
     node("${nodeLabel}") {
+        unstash 'rbp'
         ws("${workspace}") {
             Service.setServiceBuildStatus(serviceName, BuildStatus.UNKNOWN)
 
