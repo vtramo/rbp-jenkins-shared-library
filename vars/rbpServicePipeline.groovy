@@ -13,7 +13,7 @@ def call(Map params = [:]) {
 
         try {
             stage("[${serviceName}] Build") {
-                timeout(time: 3, unit: 'MINUTES') {
+                timeout(time: 2, unit: 'MINUTES') {
                     dir("${rbpServiceMainDir}") {
                         sh 'mvn clean package -DskipTests'
                     }
@@ -57,7 +57,7 @@ def call(Map params = [:]) {
             }
 
             stage("[${serviceName}] Build Image") {
-                timeout(time: 30, unit: 'SECONDS') {
+                timeout(time: 2, unit: 'MINUTES') {
                     dir("${rbpServiceMainDir}") {
                         sh '''
                             docker build \
@@ -94,7 +94,7 @@ def call(Map params = [:]) {
                 if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
                     echo "[${serviceName}] Skip Push Image Stage"
                 } else {
-                    timeout(time: 30, unit: 'SECONDS') {
+                    timeout(time: 1, unit: 'MINUTES') {
                         sh 'docker push ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT}'
                     }
                 }
@@ -129,7 +129,7 @@ def call(Map params = [:]) {
                 )
             }
 
-            timeout(time: 30, unit: 'SECONDS') {
+            timeout(time: 1, unit: 'MINUTES') {
                 dir("${rbpServiceCiDir}") {
                     sh '''
                         docker compose -f docker-compose-test.yaml logs && \
