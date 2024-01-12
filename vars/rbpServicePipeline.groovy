@@ -1,12 +1,9 @@
 def call(Map params = [:]) {
     def serviceName = params.serviceName
     def skipPerformanceTests = (params.skipPerformanceTests == true || params.skipPerformanceTests == "true")
-    def workspace = params.workspace
     def nodeLabel = params.nodeLabel
 
     node("${nodeLabel}") {
-        Service.setServiceBuildStatus(serviceName, "UNKNOWN")
-
         unstash 'rbp'
 
         def rbpServiceMainDir = "${serviceName}"
@@ -16,7 +13,6 @@ def call(Map params = [:]) {
             stage("[${serviceName}] Build") {
                 timeout(time: 3, unit: 'MINUTES') {
                     dir("${rbpServiceMainDir}") {
-                        sh 'ls'
                         sh 'mvn clean package -DskipTests'
                     }
                 }
@@ -43,10 +39,10 @@ def call(Map params = [:]) {
                     dir("${rbpServiceMainDir}") {
                         withSonarQubeEnv(installationName: 'sonarqube') {
                             sh """
-                        mvn sonar:sonar \
-                            -Dsonar.projectKey=restful-booker-platform-${serviceName} \
-                            -Dsonar.projectName=restful-booker-platform-${serviceName} \
-                        """
+                                mvn sonar:sonar \
+                                    -Dsonar.projectKey=restful-booker-platform-${serviceName} \
+                                    -Dsonar.projectName=restful-booker-platform-${serviceName} \
+                            """
                         }
                     }
                 }
@@ -62,12 +58,12 @@ def call(Map params = [:]) {
                 timeout(time: 30, unit: 'SECONDS') {
                     dir("${rbpServiceMainDir}") {
                         sh '''
-                        docker build \
-                            --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
-                            --build-arg BUILD_TAG=${BUILD_TAG} \
-                            --build-arg GIT_COMMIT=${GIT_COMMIT} \
-                            -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
-                    '''
+                            docker build \
+                                --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
+                                --build-arg BUILD_TAG=${BUILD_TAG} \
+                                --build-arg GIT_COMMIT=${GIT_COMMIT} \
+                                -t ${DOCKER_REGISTRY_URL}/rbp-auth:${GIT_SHORT_COMMIT} .
+                        '''
                     }
                 }
             }
@@ -87,9 +83,9 @@ def call(Map params = [:]) {
                         dir("${rbpServiceCiDir}") {
                             sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
                             bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
-                        -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
-                        -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
-                        performance-test.yaml"""
+                                -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
+                                -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
+                                performance-test.yaml"""
                         }
                     }
                 }
@@ -105,12 +101,6 @@ def call(Map params = [:]) {
                 }
             }
         } finally {
-            Service.setServiceBuildStatus(serviceName, currentBuild.currentResult)
-            echo currentBuild.result
-            echo ${currentBuild.currentResult}
-            echo currentBuild.currentResult
-            echo Service.getBuildStatus(serviceName).toString()
-
             dir("${rbpServiceMainDir}") {
                 junit(
                     testResults: 'target/surefire-reports/**/*.xml,target/failsafe-reports/**/*.xml',
@@ -125,11 +115,11 @@ def call(Map params = [:]) {
                 recordIssues(
                     enabledForFailure: true, aggregatingResults: false,
                     tools: [
-                            java(),
-                            junitParser(name: 'Unit Test Warnings',
-                                    pattern: 'target/surefire-reports/**/*.xml'),
-                            junitParser(name: 'Integration Test Warnings',
-                                    pattern: 'target/failsafe-reports/**/*.xml')
+                        java(),
+                        junitParser(name: 'Unit Test Warnings',
+                            pattern: 'target/surefire-reports/**/*.xml'),
+                        junitParser(name: 'Integration Test Warnings',
+                            pattern: 'target/failsafe-reports/**/*.xml')
                     ]
                 )
             }
@@ -137,9 +127,9 @@ def call(Map params = [:]) {
             timeout(time: 30, unit: 'SECONDS') {
                 dir("${rbpServiceCiDir}") {
                     sh '''
-                    docker compose -f docker-compose-test.yaml logs && \
-                    docker compose -f docker-compose-test.yaml down --volumes || :
-                '''
+                        docker compose -f docker-compose-test.yaml logs && \
+                        docker compose -f docker-compose-test.yaml down --volumes || :
+                    '''
                 }
             }
         }

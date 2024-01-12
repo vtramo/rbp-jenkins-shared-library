@@ -4,11 +4,6 @@ def call() {
             BuildStatus.valueOf(currentBuild.result))
     def ciChannel = SlackUtilities.CI_CHANNEL
 
-    def (passedServiceBuilds,
-         failedServiceBuilds,
-         abortedServiceBuilds,
-         unstableServiceBuilds) = BuildUtilities.groupServicesByBuildStatus()
-
     slackSend(
         channel: "${ciChannel}",
         color: "${slackColor}",
@@ -24,10 +19,6 @@ def call() {
             *Build label:* ${BUILD_TAG}
             *Build ID:* ${BUILD_ID}
             *Build URL:* ${BUILD_URL}
-            *Passed Services:* ${passedServiceBuilds}
-            *Failed Services:* ${failedServiceBuilds}
-            *Aborted Services:* ${abortedServiceBuilds}
-            *Unstable Services:* ${unstableServiceBuilds}
         """
     )
 }
