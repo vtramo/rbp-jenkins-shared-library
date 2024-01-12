@@ -110,12 +110,12 @@ def call(Map params = [:]) {
                 )
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 recordIssues(
-                    enabledForFailure: true, aggregatingResults: false,
+                    enabledForFailure: true, aggregatingResults: true,
                     tools: [
                         java(),
-                        junitParser(name: 'Unit Test Warnings',
+                        junitParser(name: "[${serviceName}] Unit Test Warnings",
                             pattern: 'target/surefire-reports/**/*.xml'),
-                        junitParser(name: 'Integration Test Warnings',
+                        junitParser(name: "[${serviceName}] Integration Test Warnings",
                             pattern: 'target/failsafe-reports/**/*.xml')
                     ]
                 )
