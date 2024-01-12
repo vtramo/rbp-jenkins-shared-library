@@ -6,7 +6,8 @@ def call(Map params = [:]) {
 
     node("${nodeLabel}") {
         unstash 'rbp'
-        ws("${workspace}/${serviceName}") {
+        sh 'ls'
+        ws("${workspace}") {
             Service.setServiceBuildStatus(serviceName, "UNKNOWN")
 
             def rbpServiceMainDir = "${serviceName}"
