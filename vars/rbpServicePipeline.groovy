@@ -60,10 +60,10 @@ def call(Map params = [:]) {
                 timeout(time: 2, unit: 'MINUTES') {
                     dir("${rbpServiceMainDir}") {
                         sh """
-                            docker build --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
-                                --build-arg BUILD_TAG=${BUILD_TAG} \
-                                --build-arg GIT_COMMIT=${GIT_COMMIT} \
-                                -t ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT} .
+                            docker build --build-arg \"BUILD_NUMBER=${BUILD_NUMBER}\" \
+                                --build-arg \"BUILD_TAG=${BUILD_TAG}\" \
+                                --build-arg \"GIT_COMMIT=${GIT_COMMIT}\" \
+                                -t \"${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}\" .
                         """
                     }
                 }
