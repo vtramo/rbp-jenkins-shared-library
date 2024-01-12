@@ -112,10 +112,16 @@ def call(Map params = [:]) {
                 recordIssues(
                     enabledForFailure: true, aggregatingResults: true,
                     tools: [
-                        java(),
-                        junitParser(name: "[${serviceName}] Unit Test Warnings",
+                        java(
+                            id: "${serviceName}-java",
+                            name: "[${serviceName}] Java compiler Warnings"),
+                        junitParser(
+                            id: "${serviceName}-unit-tests",
+                            name: "[${serviceName}] Unit Test Warnings",
                             pattern: 'target/surefire-reports/**/*.xml'),
-                        junitParser(name: "[${serviceName}] Integration Test Warnings",
+                        junitParser(
+                            id: "${serviceName}-integration-tests",
+                            name: "[${serviceName}] Integration Test Warnings",
                             pattern: 'target/failsafe-reports/**/*.xml')
                     ]
                 )
