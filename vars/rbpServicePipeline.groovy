@@ -110,7 +110,7 @@ def call(Map params = [:]) {
                 )
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 recordIssues(
-                    enabledForFailure: true, aggregatingResults: true,
+                    id: "${serviceName}-recordIssues", enabledForFailure: true, aggregatingResults: true,
                     tools: [
                         java(
                             id: "${serviceName}-java",
