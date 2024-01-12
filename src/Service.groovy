@@ -20,13 +20,9 @@ class Service {
         return buildStatus
     }
 
-    String getBuildStatusEnvVariableName() {
-        return BuildUtilities.BUILD_STATUS_ENV_VAR_NAME_PREFIX + "_" + name.toUpperCase()
-    }
-
     static setServiceBuildStatus(String serviceName, String buildStatus) {
-        servicesByName.computeIfPresent(serviceName, (__, service) -> {
-            service.setBuildStatus(BuildStatus.parseBuildStatus(buildStatus))
-        })
+        if(servicesByName[serviceName]) {
+            servicesByName[serviceName].setBuildStatus(BuildStatus.parseBuildStatus(buildStatus))
+        }
     }
 }
