@@ -2,6 +2,8 @@ def call(Map params = [:]) {
     def serviceName = params.serviceName
     def skipPerformanceTests = (params.skipPerformanceTests == true || params.skipPerformanceTests == "true")
     def nodeLabel = params.nodeLabel
+    def rbpServiceHostname = params.rbpServiceHostname
+    def rbpServicePort = params.rbpServicePort
 
     node("${nodeLabel}") {
         unstash 'rbp'
@@ -72,19 +74,14 @@ def call(Map params = [:]) {
                 if (skipPerformanceTests == true) {
                     echo "[${serviceName}] Skip Performance Tests Stage"
                 } else {
-                    environment {
-                        RBP_SERVICE_HOSTNAME = 'rbp-auth'
-                        RBP_SERVICE_PORT = '3004'
-                        RBP_SERVICE_DOCKER_IMAGE_TAG = "${GIT_SHORT_COMMIT}"
-                    }
-
+                    env.RBP_SERVICE_DOCKER_IMAGE_TAG = "${GIT_SHORT_COMMIT}"
 
                     timeout(time: 1, unit: 'MINUTES') {
                         dir("${rbpServiceCiDir}") {
                             sh 'docker compose -f docker-compose-test.yaml up -d --build --wait'
                             bzt """-o settings.env.JMETER_HOME=${JMETER_HOME} \
-                                -o settings.env.RBP_SERVICE_HOSTNAME=${RBP_SERVICE_HOSTNAME} \
-                                -o settings.env.RBP_SERVICE_PORT=${RBP_SERVICE_PORT} \
+                                -o settings.env.RBP_SERVICE_HOSTNAME=${rbpServiceHostname} \
+                                -o settings.env.RBP_SERVICE_PORT=${rbpServicePort} \
                                 performance-test.yaml"""
                         }
                     }
