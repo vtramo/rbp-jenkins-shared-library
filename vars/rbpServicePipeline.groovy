@@ -94,8 +94,10 @@ def call(Map params = [:]) {
                     echo "[${serviceName}] Skip Push Image Stage, deleting image..."
                     sh "docker image rm --force ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}"
                 } else {
-                    def commitDockerImage = "${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}"
-                    def latestDockerImage = "${DOCKER_REGISTRY_URL}/rbp-${serviceName}:latest"
+                    def dockerImageBaseTag = "${DOCKER_REGISTRY_URL}/rbp-${serviceName}"
+                    def commitDockerImage = dockerImageBaseTag + ":${GIT_SHORT_COMMIT}"
+                    def latestDockerImage = dockerImageBaseTag + ":latest"
+
                     timeout(time: 1, unit: 'MINUTES') {
                         sh """
                             docker tag ${commitDockerImage} ${latestDockerImage} && \
