@@ -91,8 +91,7 @@ def call(Map params = [:]) {
 
             stage("[${serviceName}] Push Image") {
                 if (currentBuild.result != null && currentBuild.result != 'SUCCESS') {
-                    echo "[${serviceName}] Skip Push Image Stage, deleting image..."
-                    sh "docker image rm --force ${DOCKER_REGISTRY_URL}/rbp-${serviceName}:${GIT_SHORT_COMMIT}"
+                    echo "[${serviceName}] Pipeline not in a successful state, skipping Push Image stage..."
                 } else {
                     def dockerImageBaseTag = "${DOCKER_REGISTRY_URL}/rbp-${serviceName}"
                     def commitDockerImage = dockerImageBaseTag + ":${GIT_SHORT_COMMIT}"
